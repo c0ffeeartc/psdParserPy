@@ -7,7 +7,7 @@
 #
 # export all layers as png
 #   don't export text_ node_
-#   handle on unsupported characters in name
+#   handle unsupported characters in name
 #   handle empty layers
 #
 # think of additional layer types to put into psd
@@ -116,6 +116,9 @@ class PsdParser(object):
         return element
 
     def __save_xml(self):
+        if not len(self.__xml_root.getchildren()):
+            return  # do not write empty xml
+
         rough_str = ET.tostring(self.__xml_root)
         xml_node = minidom.parseString(rough_str)
 
