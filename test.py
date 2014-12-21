@@ -1,4 +1,4 @@
-# WARNING: creates folder named as psd in psd's parent and may rewrite files in it if such files already exist
+# WARNING: creates folder named as psd in psd's parent and rewrites files in it if such files already exist
 
 # Task:
 # export xml with name= x=, y=, width=, height= for all groups and layers
@@ -12,6 +12,8 @@
 #
 # think of additional layer types to put into psd
 #   info_, etc.
+#
+# think if needed group to folder saving option
 
 class bcolors:
     """ Colorized output with print """
@@ -24,7 +26,7 @@ class bcolors:
 
 import re
 psd_re = re.compile('^.+\.psd$')
-valid_name = re.compile('^\w+$')  # \w is [a-zA-z0-9_]
+valid_name = re.compile('^\w+$')  # \w is [a-zA-Z0-9_]
 
 png_noexport=[
         re.compile('^noexport_\w+'),
@@ -64,17 +66,19 @@ class PsdParser(object):
         if not psd_re.match(psd_filename):
             print("'"+ psd_filename +"': not a psd file")
             return
+
         # all self vars must be reinited
         self.__psd = psd_tools.PSDImage.load(psd_filepath)
         self.__psd_name = os.path.splitext(os.path.basename(psd_filepath))[0]
         self.__psd_path = os.path.realpath(os.path.dirname(psd_filepath))
-        # print  "----------------------------------------------------"
-        print "Path: "+ self.__psd_path
-        print "----------------------------------------------------"
         self.__xml_root=ET.Element('layers')
         self.__xml_target=self.__xml_root
         self.__error_flag = False
+
         # parse
+        # print  "----------------------------------------------------"
+        print "Path: "+ self.__psd_path
+        print "----------------------------------------------------"
         self.__parse_layers(self.__psd.layers)
         self.__save_xml()
         if self.__error_flag:
