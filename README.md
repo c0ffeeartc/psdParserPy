@@ -1,8 +1,8 @@
 psdParserPy
 =================
-Script for personal use.
 Creates folder named as psd in psd's folder. Overwrites files if already exist.
 Saves layers as png and writes xml file with additional info such as position, width, height and name for layers and groups.
+Has "noexport" regexp lists for png and xml.
 
 Usage
 =================
