@@ -36,15 +36,12 @@ xml_noexport=[
         ]
 
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 import psd_tools
-from os import path
+import os
 
 def main():
     psd_filepath='../test2.psd'
-    psd_flename= path.basename(psd_filepath)
-    if not psd_re.match(psd_flename):
-        print("'"+ psd_flename +"': not a psd file")
-        return
     PsdParser().parse(psd_filepath)
 
 
@@ -57,9 +54,17 @@ class PsdParser(object):
         self.__error_flag = False
 
     def parse(self, psd_filepath):
+        psd_filename= os.path.basename(psd_filepath)
+        if not psd_re.match(psd_filename):
+            print("'"+ psd_filename +"': not a psd file")
+            return
         # all self vars must be reinited
         self.__psd = psd_tools.PSDImage.load(psd_filepath)
-        self.__psd_name = path.splitext(path.basename(psd_filepath))[0]
+        self.__psd_name = os.path.splitext(os.path.basename(psd_filepath))[0]
+        self.__psd_path = os.path.realpath(os.path.dirname(psd_filepath))
+        # print  "----------------------------------------------------"
+        print "Path: "+ self.__psd_path
+        print "----------------------------------------------------"
         self.__xml_root=ET.Element('layers')
         self.__xml_target=self.__xml_root
         self.__error_flag = False
@@ -67,9 +72,9 @@ class PsdParser(object):
         self.__parse_layers(self.__psd.layers)
         self.__save_xml()
         if self.__error_flag:
-            print bcolors.FAIL + " ------ PARSED WITH ERRORS ------ " + bcolors.ENDC
+            print bcolors.FAIL + "---------------- PARSED WITH ERRORS ----------------" + bcolors.ENDC
         else:
-            print bcolors.OKGREEN + " --------  PARSED SUCCESSFULLY -------- " + bcolors.ENDC
+            print bcolors.OKGREEN + "---------------- PARSED SUCCESSFULLY ---------------" + bcolors.ENDC
 
     def __parse_layers(self, group, parent_x=0, parent_y=0):
         for layer in group:
@@ -103,10 +108,13 @@ class PsdParser(object):
         return element
 
     def __save_xml(self):
-        # print ET.tostring(self.__xml_root)
-        ET.dump(self.__xml_root)
-        # xml_tree=ET.ElementTree(self.__xml_root)
-        # xml_tree.write(self.__psd_name+'.xml')
+        rough_str = ET.tostring(self.__xml_root)
+        xml_node = minidom.parseString(rough_str)
+        # print xml_node.toprettyxml(indent="\t")
+        xml_filepath = os.path.join(self.__psd_path, self.__psd_name+'.xml')
+        with open(xml_filepath, "w") as file:
+            # xml_node.writexml(file, addindent="\t", newl="\n")
+            print "Saving xml: " + xml_filepath
 
     def __export_to_png(self, layer):
         for noexport in png_noexport:
@@ -114,12 +122,16 @@ class PsdParser(object):
                 # print('Noexport: \t\t'+self.__psd_name+"_"+layer.name)
                 return
         if not self.__has_pixels(layer):
-            print(bcolors.FAIL + 'Empty layer: \t\t'+self.__psd_name+"_"+layer.name + bcolors.ENDC)
+            print(bcolors.FAIL + 'Empty layer: \t\t' + layer.name + bcolors.ENDC)
             self.__error_flag = True
             return
-        print('Saving: \t\t'+self.__psd_name+"_"+layer.name + ".png")
+        png_filename = self.__psd_name + "_" +layer.name + ".png"
+        png_path = os.path.join(self.__psd_path, self.__psd_name)
+        if not os.path.exists(png_path):
+            os.mkdir(png_path)
         # image = layer.as_PIL()
-        # image.save(self.__psd_name +"_"+ layer.name + ".png")
+        # image.save(os.path.join(png_path , png_filename))
+        print('Saving: \t\t' + png_filename)
 
     def __is_group(self, layer):
         return hasattr(layer,'layers')
