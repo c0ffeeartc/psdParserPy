@@ -1,3 +1,5 @@
+# WARNING: creates folder named as psd in psd's parent and may rewrite files in it if such files already exist
+
 # Task:
 # export xml with name= x=, y=, width=, height= for all groups and layers
 #   layers in groups have relative coordinates to parent
@@ -38,11 +40,15 @@ xml_noexport=[
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import psd_tools
-import os
+import os, sys
 
 def main():
-    psd_filepath='../test2.psd'
-    PsdParser().parse(psd_filepath)
+    for arg in sys.argv[1:]:
+        realpath = os.path.realpath(arg)
+        if os.path.exists(realpath):
+            PsdParser().parse(realpath)
+        else:
+            print 'No such file: ' + realpath
 
 
 class PsdParser(object):
@@ -78,10 +84,11 @@ class PsdParser(object):
 
     def __parse_layers(self, group, parent_x=0, parent_y=0):
         for layer in reversed(group):
-            if not self.__is_valid(layer):
+            if not self.__is_valid_name(layer):
                 print(bcolors.FAIL + 'Wrong chars in name: \t\t\t'+self.__psd_name+"_"+layer.name + bcolors.ENDC)
                 self.__error_flag = True
                 continue  # skip invalid named layers
+
             latest_xml_element = self.__append_to_xml(layer, parent_x, parent_y)
             if self.__is_group(layer):
                 xml_target_backup = self.__xml_target
@@ -95,6 +102,7 @@ class PsdParser(object):
         for noexport in xml_noexport:
             if noexport.match(layer.name):
                 return
+
         element_type = 'group' if self.__is_group(layer) else 'layer'
         element = ET.Element(element_type,
             {
@@ -110,10 +118,14 @@ class PsdParser(object):
     def __save_xml(self):
         rough_str = ET.tostring(self.__xml_root)
         xml_node = minidom.parseString(rough_str)
-        # print xml_node.toprettyxml(indent="\t")
-        xml_filepath = os.path.join(self.__psd_path, self.__psd_name+'.xml')
+
+        xml_path = os.path.join(self.__psd_path, self.__psd_name)
+        if not os.path.exists(xml_path):
+            os.mkdir(xml_path)
+
+        xml_filepath = os.path.join (xml_path,  self.__psd_name+'.xml')
         with open(xml_filepath, "w") as file:
-            # xml_node.writexml(file, addindent="\t", newl="\n")
+            xml_node.writexml(file, addindent="\t", newl="\n")
             print "Saving xml: " + xml_filepath
 
     def __export_to_png(self, layer):
@@ -121,16 +133,19 @@ class PsdParser(object):
             if noexport.match(layer.name):
                 # print('Noexport: \t\t'+self.__psd_name+"_"+layer.name)
                 return
+
         if not self.__has_pixels(layer):
             print(bcolors.FAIL + 'Empty layer: \t\t' + layer.name + bcolors.ENDC)
             self.__error_flag = True
             return
-        png_filename = self.__psd_name + "_" +layer.name + ".png"
+
         png_path = os.path.join(self.__psd_path, self.__psd_name)
         if not os.path.exists(png_path):
             os.mkdir(png_path)
-        # image = layer.as_PIL()
-        # image.save(os.path.join(png_path , png_filename))
+
+        png_filename = self.__psd_name + "_" +layer.name + ".png"
+        image = layer.as_PIL()
+        image.save(os.path.join(png_path , png_filename))
         print('Saving: \t\t' + png_filename)
 
     def __is_group(self, layer):
@@ -139,7 +154,7 @@ class PsdParser(object):
     def __has_pixels(self, layer):
         return layer.bbox[0]!=layer.bbox[2] and layer.bbox[1]!=layer.bbox[3]
 
-    def __is_valid(self, layer):
+    def __is_valid_name(self, layer):
         return bool(valid_name.match(layer.name))
 
 
