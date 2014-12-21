@@ -77,7 +77,7 @@ class PsdParser(object):
             print bcolors.OKGREEN + "---------------- PARSED SUCCESSFULLY ---------------" + bcolors.ENDC
 
     def __parse_layers(self, group, parent_x=0, parent_y=0):
-        for layer in group:
+        for layer in reversed(group):
             if not self.__is_valid(layer):
                 print(bcolors.FAIL + 'Wrong chars in name: \t\t\t'+self.__psd_name+"_"+layer.name + bcolors.ENDC)
                 self.__error_flag = True
