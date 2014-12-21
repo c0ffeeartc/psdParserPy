@@ -13,6 +13,6 @@ Pass psd files as arguments to script:
 Dependencies
 =================
 Created with:
- - python 2.9
+ - python 2.7.6
  - psd-tools https://github.com/kmike/psd-tools
 
