@@ -1,14 +1,14 @@
 psdParserPy
 =================
-Creates folder named as psd in psd's folder. Overwrites files if already exist.
-Saves layers as png and writes xml file with additional info such as position, width, height and name for layers and groups.
+Takes a list of psd as arguments, writes xml with additional info about layers and saves layers as png.
 Has "noexport" regexp lists for png and xml.
+Generated files are saved into new folder named as psd inside psd's folder
 
 Usage
 =================
 Pass psd files as arguments to script:
 
-    python psdParser.py ../File1.psd ../../File2.psd
+    python psdParser.py ../filename1.psd ../../filename2.psd
 
 Dependencies
 =================
