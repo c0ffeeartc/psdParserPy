@@ -18,7 +18,7 @@ class bcolors:
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
-    ENDC = '\033[0m'
+    ENDC = '\033[0m'  # end coloring
 
 import re
 psd_re = re.compile('^.+\.psd$')
@@ -40,7 +40,7 @@ import psd_tools
 from os import path
 
 def main():
-    psd_filepath='test2.psd'
+    psd_filepath='../test2.psd'
     psd_flename= path.basename(psd_filepath)
     if not psd_re.match(psd_flename):
         print("'"+ psd_flename +"': not a psd file")
@@ -54,6 +54,7 @@ class PsdParser(object):
         self.__psd_name = None
         self.__xml_root = None
         self.__xml_target = None
+        self.__error_flag = False
 
     def parse(self, psd_filepath):
         # all self vars must be reinited
@@ -61,14 +62,20 @@ class PsdParser(object):
         self.__psd_name = path.splitext(path.basename(psd_filepath))[0]
         self.__xml_root=ET.Element('layers')
         self.__xml_target=self.__xml_root
+        self.__error_flag = False
         # parse
         self.__parse_layers(self.__psd.layers)
         self.__save_xml()
+        if self.__error_flag:
+            print bcolors.FAIL + " ------ PARSED WITH ERRORS ------ " + bcolors.ENDC
+        else:
+            print bcolors.OKGREEN + " --------  PARSED SUCCESSFULLY -------- " + bcolors.ENDC
 
     def __parse_layers(self, group, parent_x=0, parent_y=0):
         for layer in group:
             if not self.__is_valid(layer):
                 print(bcolors.FAIL + 'Wrong chars in name: \t\t\t'+self.__psd_name+"_"+layer.name + bcolors.ENDC)
+                self.__error_flag = True
                 continue  # skip invalid named layers
             latest_xml_element = self.__append_to_xml(layer, parent_x, parent_y)
             if self.__is_group(layer):
@@ -108,6 +115,7 @@ class PsdParser(object):
                 return
         if not self.__has_pixels(layer):
             print(bcolors.FAIL + 'Empty layer: \t\t'+self.__psd_name+"_"+layer.name + bcolors.ENDC)
+            self.__error_flag = True
             return
         print('Saving: \t\t'+self.__psd_name+"_"+layer.name + ".png")
         # image = layer.as_PIL()
