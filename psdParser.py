@@ -153,7 +153,7 @@ class PsdParser(object):
         png_filename = self.__psd_name + "_" +layer.name + ".png"
         image = layer.as_PIL()
         image.save(os.path.join(png_path , png_filename))
-        print('Saving: \t\t' + png_filename)
+        # print('Saving: \t\t' + png_filename)
 
     def __is_group(self, layer):
         return hasattr(layer,'layers')
