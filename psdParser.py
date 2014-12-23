@@ -1,3 +1,5 @@
+#! python2.7
+
 # WARNING: creates folder named as psd in psd's parent and rewrites files in it if such files already exist
 
 # Task:
@@ -50,7 +52,7 @@ def main():
         if os.path.exists(realpath):
             PsdParser().parse(realpath)
         else:
-            print 'No such file: ' + realpath
+            print('No such file: ' + realpath)
 
 
 class PsdParser(object):
@@ -77,14 +79,14 @@ class PsdParser(object):
 
         # parse
         # print  "----------------------------------------------------"
-        print "Path: "+ self.__psd_path
-        print "----------------------------------------------------"
+        print("Path: "+ self.__psd_path)
+        print("----------------------------------------------------")
         self.__parse_layers(self.__psd.layers)
         self.__save_xml()
         if self.__error_flag:
-            print bcolors.FAIL + "---------------- PARSED WITH ERRORS ----------------" + bcolors.ENDC
+            print(bcolors.FAIL + "---------------- PARSED WITH ERRORS ----------------" + bcolors.ENDC)
         else:
-            print bcolors.OKGREEN + "---------------- PARSED SUCCESSFULLY ---------------" + bcolors.ENDC
+            print(bcolors.OKGREEN + "---------------- PARSED SUCCESSFULLY ---------------" + bcolors.ENDC)
 
     def __parse_layers(self, group, parent_x=0, parent_y=0):
         for layer in reversed(group):
@@ -133,7 +135,7 @@ class PsdParser(object):
         xml_filepath = os.path.join (xml_path,  self.__psd_name+'.xml')
         with open(xml_filepath, "w") as file:
             xml_node.writexml(file, addindent="\t", newl="\n")
-            print "Saving xml: " + xml_filepath
+            print("Saving xml: " + xml_filepath)
 
     def __export_to_png(self, layer):
         for noexport in png_noexport:
